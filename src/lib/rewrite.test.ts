@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveSpecifier, rewriteProject, rewriteToVfs } from "./rewrite";
+import { resolveSpecifier, rewriteProject, rewriteReachable, rewriteToVfs } from "./rewrite";
 
 describe("resolveSpecifier", () => {
   it("resolves a sibling", () => {
@@ -63,5 +63,22 @@ describe("rewriteProject", () => {
     });
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.files["main.mjs"]).toContain("vfs:///lib/math.mjs");
+  });
+});
+
+describe("rewriteReachable", () => {
+  it("ignores an unused broken sibling", () => {
+    const r = rewriteReachable("main.mjs", {
+      "main.mjs": `import { add } from './lib/math.mjs';\n`,
+      "lib/math.mjs": `export function add(a, b) { return a + b; }\n`,
+      "scratch.mjs": `const x =`,
+    });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.files["scratch.mjs"]).toBeUndefined();
+  });
+
+  it("accepts an empty entry module", () => {
+    const r = rewriteReachable("empty.mjs", { "empty.mjs": "" });
+    expect(r.ok).toBe(true);
   });
 });

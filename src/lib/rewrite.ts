@@ -147,3 +147,28 @@ export function rewriteProject(
   }
   return { ok: true, files: out };
 }
+
+export function rewriteReachable(
+  entry: string,
+  files: Record<string, string>,
+): { ok: true; files: Record<string, string> } | RewriteErr {
+  if (!(entry in files)) return { ok: false, error: "Select a JavaScript file to run" };
+  const names = new Set(Object.keys(files));
+  const out: Record<string, string> = {};
+  const queue = [entry];
+  const seen = new Set<string>();
+  while (queue.length) {
+    const path = queue.pop()!;
+    if (seen.has(path)) continue;
+    seen.add(path);
+    const source = files[path];
+    if (source === undefined) return { ok: false, error: `Module not found: ${path}` };
+    const result = rewriteToVfs(path, source, names);
+    if (!result.ok) return { ok: false, error: `${path}: ${result.error}` };
+    out[path] = result.code;
+    for (const dep of result.imports) {
+      if (!seen.has(dep)) queue.push(dep);
+    }
+  }
+  return { ok: true, files: out };
+}

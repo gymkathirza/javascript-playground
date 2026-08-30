@@ -10,9 +10,9 @@ export function useFocusTrap(open: boolean, ref: RefObject<HTMLElement | null>, 
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         ),
       ].filter((el) => !el.hasAttribute("disabled"));
+    const prev = document.activeElement as HTMLElement | null;
     const first = focusable()[0];
     first?.focus();
-    const prev = document.activeElement as HTMLElement | null;
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {

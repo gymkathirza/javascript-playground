@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { EditorView, highlightActiveLine, lineNumbers } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import { addFile, addFolder, starterVfs, writeFile, type FileExt, type Vfs } from "./lib/vfs";
 import { DEFAULT_SETTINGS, type Settings } from "./lib/settings";
 import {
@@ -132,8 +132,6 @@ export function App() {
   const themeClass = settings.theme === "light" ? "theme-light" : "theme-dark";
   const extensions = [
     javascript(),
-    ...(settings.lineNumbers ? [lineNumbers()] : []),
-    ...(settings.activeLine ? [highlightActiveLine()] : []),
     EditorView.theme({
       "&": { fontSize: `${settings.fontSize}px` },
       ".cm-scroller": { fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" },

@@ -1,4 +1,4 @@
-import { useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { childrenOf, type Vfs } from "../lib/vfs";
 import { parentDir } from "../lib/paths";
 
@@ -17,6 +17,13 @@ function basename(path: string): string {
 export function FileTree({ vfs, selected, onSelectFile, onSelectFolder }: Props) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({ lib: true });
   const [focus, setFocus] = useState<string>("");
+  const treeRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    if (!focus) return;
+    const node = treeRef.current?.querySelector<HTMLElement>(`[data-path="${CSS.escape(focus)}"]`);
+    node?.focus();
+  }, [focus]);
 
   const items = useMemo(() => {
     const out: { id: string; kind: "file" | "folder"; level: number }[] = [];
@@ -75,7 +82,7 @@ export function FileTree({ vfs, selected, onSelectFile, onSelectFolder }: Props)
   };
 
   return (
-    <ul role="tree" aria-label="Project files" className="tree" onKeyDown={onKey}>
+    <ul ref={treeRef} role="tree" aria-label="Project files" className="tree" onKeyDown={onKey}>
       {items.map((item) => {
         const isFolder = item.kind === "folder";
         const isExpanded = isFolder ? expanded[item.id] !== false : undefined;
@@ -88,6 +95,7 @@ export function FileTree({ vfs, selected, onSelectFile, onSelectFolder }: Props)
             aria-expanded={isFolder ? isExpanded : undefined}
             aria-selected={isSelected}
             tabIndex={tabIndex}
+            data-path={item.id}
             aria-level={item.level}
             className={isSelected ? "selected" : ""}
             style={{ paddingLeft: item.level * 12 }}

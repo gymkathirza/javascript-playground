@@ -1,4 +1,4 @@
-import { rewriteProject } from "./rewrite";
+import { rewriteReachable } from "./rewrite";
 
 export type ConsoleKind = "log" | "info" | "warn" | "error";
 
@@ -81,8 +81,8 @@ export function prepareRun(
   files: Record<string, string>,
   entry: string,
 ): { files: Record<string, string> } | { error: string } {
-  if (!files[entry]) return { error: "Select a JavaScript file to run" };
-  const rewritten = rewriteProject(files);
+  if (!(entry in files)) return { error: "Select a JavaScript file to run" };
+  const rewritten = rewriteReachable(entry, files);
   if (!rewritten.ok) return { error: rewritten.error };
   return { files: rewritten.files };
 }
