@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { EditorView } from "@codemirror/view";
+import { autocompletion } from "@codemirror/autocomplete";
+import { Group, Panel, Separator, useDefaultLayout } from "react-resizable-panels";
+import { tsAutocomplete, tsFacet, tsHover, tsLinter, tsSync } from "@valtown/codemirror-ts";
 import { addFile, addFolder, starterVfs, writeFile, type FileExt, type Vfs } from "./lib/vfs";
 import { DEFAULT_SETTINGS, type Settings } from "./lib/settings";
 import {
@@ -20,6 +23,7 @@ import { SettingsDialog } from "./ui/SettingsDialog";
 import { CreateDialog } from "./ui/CreateDialog";
 import { ConfirmDialog } from "./ui/ConfirmDialog";
 import { ConsolePanel } from "./ui/ConsolePanel";
+import { useTsEnv } from "./lib/useTsEnv";
 
 export function App() {
   const loaded = useRef(loadSession());
@@ -129,19 +133,31 @@ export function App() {
     return null;
   };
 
+  const tsEnv = useTsEnv(vfs.files);
+  const { defaultLayout, onLayoutChanged } = useDefaultLayout({ id: "jspg-workspace" });
+
   const themeClass = settings.theme === "light" ? "theme-light" : "theme-dark";
-  const extensions = [
-    javascript(),
-    EditorView.theme({
-      "&": { fontSize: `${settings.fontSize}px` },
-      ".cm-scroller": { fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" },
-    }),
-    ...(settings.theme === "dark" ? [oneDark] : []),
-    EditorView.lineWrapping,
-  ];
-  if (!settings.lineWrap) {
-    extensions.splice(extensions.indexOf(EditorView.lineWrapping), 1);
-  }
+  const extensions = useMemo(() => {
+    const list = [
+      javascript({ typescript: true }),
+      EditorView.theme({
+        "&": { fontSize: `${settings.fontSize}px` },
+        ".cm-scroller": { fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" },
+      }),
+      ...(settings.theme === "dark" ? [oneDark] : []),
+      ...(settings.lineWrap ? [EditorView.lineWrapping] : []),
+    ];
+    if (tsEnv && activeTab) {
+      list.push(
+        tsFacet.of({ env: tsEnv, path: `/${activeTab}` }),
+        tsSync(),
+        tsLinter(),
+        autocompletion({ override: [tsAutocomplete()] }),
+        tsHover(),
+      );
+    }
+    return list;
+  }, [settings.fontSize, settings.theme, settings.lineWrap, tsEnv, activeTab]);
 
   const source = activeTab ? (vfs.files[activeTab] ?? "") : "";
 
@@ -168,53 +184,70 @@ export function App() {
           ⚙
         </button>
       </header>
-      <div className="workspace">
-        <nav className="sidebar" aria-label="Files">
-          <div className="side-actions">
-            <button type="button" onClick={() => setCreateMode("file")}>
-              New file
-            </button>
-            <button type="button" onClick={() => setCreateMode("folder")}>
-              New folder
-            </button>
-          </div>
-          <FileTree
-            vfs={vfs}
-            selected={activeTab ?? folder}
-            onSelectFile={openFile}
-            onSelectFolder={setFolder}
-          />
-        </nav>
-        <main className="main">
-          <EditorTabs tabs={openTabs} active={activeTab} onSelect={setActiveTab} onClose={closeTab} />
-          <div
-            id="editor-panel"
-            role="tabpanel"
-            aria-labelledby={activeTab ? `tab-${activeTab}` : undefined}
-            className="editor"
-          >
-            {activeTab ? (
-              <CodeMirror
-                value={source}
-                height="100%"
-                theme={settings.theme === "dark" ? "dark" : "light"}
-                extensions={extensions}
-                basicSetup={{ lineNumbers: settings.lineNumbers, highlightActiveLine: settings.activeLine }}
-                onChange={(value) => {
-                  skipAuto.current = false;
-                  const next = writeFile(vfs, activeTab, value);
-                  if ("error" in next) setRunError(next.error);
-                  else setVfs(next);
-                }}
-                aria-label={`Code editor for ${activeTab}`}
-              />
-            ) : (
-              <p className="hint">Open or create a .js / .mjs file.</p>
-            )}
-          </div>
-        </main>
-        <ConsolePanel lines={lines} />
-      </div>
+      <Group
+        orientation="horizontal"
+        className="workspace"
+        defaultLayout={defaultLayout}
+        onLayoutChanged={onLayoutChanged}
+      >
+        <Panel id="files" defaultSize="18%" minSize="12%" className="sidebar-panel">
+          <nav className="sidebar" aria-label="Files">
+            <div className="side-actions">
+              <button type="button" onClick={() => setCreateMode("file")}>
+                New file
+              </button>
+              <button type="button" onClick={() => setCreateMode("folder")}>
+                New folder
+              </button>
+            </div>
+            <FileTree
+              vfs={vfs}
+              selected={activeTab ?? folder}
+              onSelectFile={openFile}
+              onSelectFolder={setFolder}
+            />
+          </nav>
+        </Panel>
+        <Separator className="resize-handle" aria-label="Resize file tree" />
+        <Panel id="editor" defaultSize="54%" minSize="20%" className="main-panel">
+          <main className="main">
+            <EditorTabs tabs={openTabs} active={activeTab} onSelect={setActiveTab} onClose={closeTab} />
+            <div
+              id="editor-panel"
+              role="tabpanel"
+              aria-labelledby={activeTab ? `tab-${activeTab}` : undefined}
+              className="editor"
+            >
+              {activeTab ? (
+                <CodeMirror
+                  value={source}
+                  height="100%"
+                  theme={settings.theme === "dark" ? "dark" : "light"}
+                  extensions={extensions}
+                  basicSetup={{
+                    lineNumbers: settings.lineNumbers,
+                    highlightActiveLine: settings.activeLine,
+                    autocompletion: !tsEnv,
+                  }}
+                  onChange={(value) => {
+                    skipAuto.current = false;
+                    const next = writeFile(vfs, activeTab, value);
+                    if ("error" in next) setRunError(next.error);
+                    else setVfs(next);
+                  }}
+                  aria-label={`Code editor for ${activeTab}`}
+                />
+              ) : (
+                <p className="hint">Open or create a .js / .mjs file.</p>
+              )}
+            </div>
+          </main>
+        </Panel>
+        <Separator className="resize-handle" aria-label="Resize console" />
+        <Panel id="console" defaultSize="28%" minSize="12%" className="console-panel">
+          <ConsolePanel lines={lines} />
+        </Panel>
+      </Group>
       {(saveError || runError) && (
         <div className="status" role="status">
           {runError || saveError}

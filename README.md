@@ -16,6 +16,10 @@ npm run dev
 
 Dev URL uses Vite’s local server. Production builds assume the GitHub Pages base path `/javascript-playground/`.
 
+Drag the vertical bars between the file tree, editor, and console to resize them (sizes are remembered in this browser).
+
+**IntelliSense (Intelligent Sense):** completions, hover types, and diagnostics come from the open-source [TypeScript](https://www.typescriptlang.org/) language service plus [@valtown/codemirror-ts](https://github.com/val-town/codemirror-ts) in CodeMirror. That covers JavaScript and JSDoc across your project files. Standard library types load from `playgroundcdn.typescriptlang.org` on first use (allowed in `_headers` `connect-src`). If that fetch fails, project-file completions still work.
+
 ## Hosting plan
 
 1. **Now:** GitHub Pages for validation (this repo). Pages cannot send real `Content-Security-Policy (CSP)` *headers*; sandbox isolation still applies in the iframe.
@@ -34,6 +38,8 @@ UI follows [WAI-ARIA 1.2](https://www.w3.org/WAI/standards-guidelines/aria/) and
 
 MIT. See [LICENSE](LICENSE).
 
+Runtime libraries are OSI (Open Source Initiative)-approved and free to use: **MIT**, **ISC** (more liberal than MIT), or **Apache-2.0** (TypeScript language service). No GPL (GNU General Public License) / copyleft runtime dependencies. JSZip is dual-licensed MIT OR GPL-3.0-or-later; this project uses the MIT grant.
+
 ## Glossary
 
 | Term | Expansion | In this project |
@@ -43,3 +49,6 @@ MIT. See [LICENSE](LICENSE).
 | ARIA | Accessible Rich Internet Applications | Roles, states, and keyboard patterns |
 | VFS | Virtual File System | In-browser folder tree, not a real disk |
 | APG | ARIA Authoring Practices Guide | How to implement ARIA widgets |
+| IntelliSense | Intelligent Sense | Editor completions, hover, and diagnostics |
+| OSI | Open Source Initiative | Defines approved free/open licenses |
+| GPL | GNU General Public License | Copyleft license we do not take as a runtime dep |
