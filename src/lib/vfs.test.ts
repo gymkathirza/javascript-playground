@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_FILE_BYTES } from "./limits";
+import { MAX_FILE_CHARS } from "./limits";
 import { addFile, addFolder, renameStem, starterVfs, writeFile } from "./vfs";
 
 describe("vfs", () => {
@@ -31,7 +31,7 @@ describe("vfs", () => {
 
   it("rejects oversize files", () => {
     const vfs = starterVfs();
-    const big = "x".repeat(MAX_FILE_BYTES + 1);
+    const big = "x".repeat(MAX_FILE_CHARS + 1);
     const result = writeFile(vfs, "main.mjs", big);
     expect("error" in result).toBe(true);
   });
