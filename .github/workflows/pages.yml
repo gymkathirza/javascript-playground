@@ -2,7 +2,7 @@ name: GitHub Pages (validation host)
 
 on:
   push:
-    branches: [main, feat/esm-playground-mvp]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -32,7 +32,7 @@ jobs:
         with:
           path: dist
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:
