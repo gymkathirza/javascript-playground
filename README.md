@@ -36,13 +36,12 @@ UI follows [WAI-ARIA 1.2](https://www.w3.org/WAI/standards-guidelines/aria/) and
 
 ## License
 
-ISC (Internet Systems Consortium) — the most liberal license among our runtime stack. See [LICENSE](LICENSE). Dependencies keep their own licenses.
+MIT (Massachusetts Institute of Technology). See [LICENSE](LICENSE). Dependencies keep their own licenses.
 
-Most liberal → least liberal:
+Runtime licenses we use:
 
-1. **ISC** — `@valtown/codemirror-ts`
-2. **MIT** — CodeMirror, `@typescript/vfs`, `react-resizable-panels`, React, Acorn, JSZip (MIT grant)
-3. **Apache-2.0** — TypeScript language service
+- **MIT / ISC** — same freedom (use, change, sell; keep the notice). MIT is this project. ISC is `@valtown/codemirror-ts` (shorter wording).
+- **Apache-2.0** — TypeScript; same use/change/sell, plus NOTICE / patent terms.
 
 No GPL (GNU General Public License) / copyleft runtime dependencies. JSZip is dual-licensed MIT OR GPL-3.0-or-later; this project uses the MIT grant.
 
@@ -58,4 +57,4 @@ No GPL (GNU General Public License) / copyleft runtime dependencies. JSZip is du
 | IntelliSense | Intelligent Sense | Editor completions, hover, and diagnostics |
 | OSI | Open Source Initiative | Defines approved free/open licenses |
 | GPL | GNU General Public License | Copyleft license we do not take as a runtime dep |
-| ISC | Internet Systems Consortium | This project's license; simpler than MIT |
+| ISC | Internet Systems Consortium | Same freedom as MIT; shorter wording |

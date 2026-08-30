@@ -1,7 +1,7 @@
 {
   "name": "javascript-playground",
   "private": true,
-  "license": "ISC",
+  "license": "MIT",
   "version": "0.1.0",
   "type": "module",
   "description": "A safe in-browser playground for learning native JavaScript modules",
